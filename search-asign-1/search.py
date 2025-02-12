@@ -101,7 +101,70 @@ def depthFirstSearch(problem: SearchProblem):
     # [1] -> [2] -> [2]
     # (this example does right first)
 
-    util.raiseNotDefined()
+    '''
+    graph search pseudcode
+    function graph_search(problem, fringe) return a solutioin, or failure
+        closed <- an empty set
+        fringe <- INSERT(MAKE-NODE(INITIAL-STATE[problem]), fringe)
+        loop do
+            if fringe is empty then return failure
+            node <- REMOVE-FRONT(fringe)
+            if GOAL_TEST(problem, STATE[node]) then return node
+            if STATE[node] is not in closed then
+                add STATE[node] to closed
+                for child-node in EXPAND(STATE[node], problem) do
+                    fringe <- INSERT(child-node, fringe)
+                end
+        end
+    '''
+
+    # initialize the stack
+    stack = util.Stack()
+    # initialize the closed set
+    closed = set()  # set is a data structure that stores unique elements
+                    # same as list but no duplicates (?)
+    # push the start state to the stack
+    stack.push((problem.getStartState(), []))
+
+    # loop while the stack is not empty
+    while not stack.isEmpty():
+        # pop the top node from the stack and store it
+        # node is a tuple of (state, actions) - recall above, we push (start state, []) to the stack
+        # state is the current state and actions is the list of actions to reach this state (i.e., path)
+        node, actions = stack.pop() 
+        # print("Node:", node)
+        # print("Actions:", actions)
+
+        # check if the current state is the goal state
+        if problem.isGoalState(node):
+            return actions  # if goal, return the list of actions to reach this state
+        
+        # otherwise...
+        # check if the current state is in the closed set
+        if node not in closed:
+            # add the current state to the closed set
+            closed.add(node)
+            # get the successors of the current state
+            # note: .getSuccessors() checks W, E, S, N in that order
+            successors = problem.getSuccessors(node)
+
+            # push the successors to the stack by looping through them
+            for successor in successors: 
+                # successor is a tuple of (state, actions, cost)
+                nextState = successor[0]
+                action = successor[1]
+                # cost = successor[2]
+                # state is the successor state, actions is the list of actions to reach this state, and cost is the cost to reach this state
+                # we don't worry about cost; cost is not used in DFS
+                # only push state and actions to the stack
+                stack.push((nextState, actions + [action]))
+    
+    return actions # if no solution, return the list of actions to reach this state?
+
+    print("Start:", problem.getStartState())
+    print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
+    print("Start's successors:", problem.getSuccessors(problem.getStartState()))
+
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
@@ -117,7 +180,39 @@ def breadthFirstSearch(problem: SearchProblem):
     #      4   5 6   7
     # [1] -> [2, 3] -> [3, 4, 5] ...
     
-    util.raiseNotDefined()
+    # just DFS but with queue instead of stack
+
+    # initialize the queue
+    queue = util.Queue()
+    #initialize the closed set
+    closed = set()
+
+    # push the start state (root node) to the queue
+    queue.push((problem.getStartState(), []))
+
+    while not queue.isEmpty():
+        # pop the front node from the queue and store it
+        node, actions = queue.pop()
+
+        # check if the current node's state is the goal state
+        if problem.isGoalState(node):
+            return actions
+        
+        # check if current node has been visited
+        if not node in closed:
+            # add the current node
+            closed.add(node)
+            # get the successors of the current node
+            successors = problem.getSuccessors(node)
+
+            # push the successors into the queue
+            for successor in successors:
+                nextState = successor[0]
+                action = successor[1]
+                # cost = successor[2]
+                queue.push((nextState, actions + [action]))
+
+    return actions
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
