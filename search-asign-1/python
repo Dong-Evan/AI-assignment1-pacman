@@ -1,0 +1,5 @@
+[SearchAgent] using function depthFirstSearch
+[SearchAgent] using problem type PositionSearchProblem
+Warning: this does not look like a regular search maze
+Path found with total cost of 16 in 0.0 seconds
+Search nodes expanded: 16

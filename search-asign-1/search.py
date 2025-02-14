@@ -129,24 +129,24 @@ def depthFirstSearch(problem: SearchProblem):
     # loop while the stack is not empty
     while not stack.isEmpty():
         # pop the top node from the stack and store it
-        # node is a tuple of (state, actions) - recall above, we push (start state, []) to the stack
-        # state is the current state and actions is the list of actions to reach this state (i.e., path)
-        node, actions = stack.pop() 
+        # node is a tuple of (state, actions) - recall above, we push (<start state> or <x,y>, []) to the stack
+        # state is the current state and actions is the list of actions to reach this state (i.e., the path)
+        currentState, actions = stack.pop() 
         # print("Node:", node)
         # print("Actions:", actions)
 
         # check if the current state is the goal state
-        if problem.isGoalState(node):
+        if problem.isGoalState(currentState):
             return actions  # if goal, return the list of actions to reach this state
         
         # otherwise...
         # check if the current state is in the closed set
-        if node not in closed:
+        if currentState not in closed:
             # add the current state to the closed set
-            closed.add(node)
-            # get the successors of the current state
+            closed.add(currentState)
+            # get the successors of the current state (i.e., which directions pacman can legally move)
             # note: .getSuccessors() checks W, E, S, N in that order
-            successors = problem.getSuccessors(node)
+            successors = problem.getSuccessors(currentState)
 
             # push the successors to the stack by looping through them
             for successor in successors: 
@@ -192,18 +192,18 @@ def breadthFirstSearch(problem: SearchProblem):
 
     while not queue.isEmpty():
         # pop the front node from the queue and store it
-        node, actions = queue.pop()
+        currentState, actions = queue.pop()
 
         # check if the current node's state is the goal state
-        if problem.isGoalState(node):
+        if problem.isGoalState(currentState):
             return actions
         
         # check if current node has been visited
-        if not node in closed:
+        if not currentState in closed:
             # add the current node
-            closed.add(node)
+            closed.add(currentState)
             # get the successors of the current node
-            successors = problem.getSuccessors(node)
+            successors = problem.getSuccessors(currentState)
 
             # push the successors into the queue
             for successor in successors:
@@ -222,7 +222,41 @@ def uniformCostSearch(problem: SearchProblem):
     # need to use a priority queue (lowest cost node goes first) for UCS
     # basically, expand the node with the lowest cost and add its children to the queue (queue sorts newly added nodes)
 
-    util.raiseNotDefined()
+    # initialize the priority queue
+    priorityQueue = util.PriorityQueue()
+    # initialize the closed set
+    closed = set()
+
+    # push the start state (root node) to the priority queue
+    priorityQueue.push((problem.getStartState(), []), 0)
+
+    while not priorityQueue.isEmpty():
+        # pop the front node from the queue and store it
+        currentState, actions = priorityQueue.pop()
+
+        # check if the current node's state is the goal state
+        if problem.isGoalState(currentState):
+            return actions
+        
+        # chheck if the current node has been visited 
+        if not currentState in closed:
+            # add the current node
+            closed.add(currentState)
+            # get the successors of the current node 
+            successors = problem.getSuccessors(currentState)
+
+            # push the successors into the queue
+            for successor in successors:
+                nextState = successor[0]
+                action = successor[1]
+                cost = successor[2]
+                # get cost of all actions to reach this state
+                cost = cost + problem.getCostOfActions(actions)
+                # print(f"Next State: {nextState}, Action: {action} Cost: {cost}")
+                # push the successor into the queue with the cost
+                priorityQueue.push((nextState, actions + [action]), cost) #problem.getCostOfActions(actions + [action])
+
+    return actions
 
 def nullHeuristic(state, problem=None):
     """
@@ -236,7 +270,46 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     
     "*** YOUR CODE HERE *** (Q4)"
 
-    util.raiseNotDefined()
+    # basically same as UCS but include heuristic cost
+
+    # initialize the priority queue
+    priorityQueue = util.PriorityQueue()
+    # initialize the closed set
+    closed = set()
+
+    # push the start state (root node) to the queue
+    priorityQueue.push((problem.getStartState(), []), 0)
+
+    # loop through the queue until empty
+    while not priorityQueue.isEmpty():
+        
+        # pop the front node from the queue and store it
+        currentState, actions = priorityQueue.pop()
+
+        # check if the current node's state is the goal state
+        if problem.isGoalState(currentState):
+            return actions
+        
+        # check if the current node has been visited
+        if not currentState in closed:
+            # add the current node
+            closed.add(currentState)
+            # get the successors of the current node
+            successors = problem.getSuccessors(currentState)
+
+            # push the successors into the queue
+            for successor in successors:
+                nextState = successor[0]
+                action = successor[1]
+                cost = successor[2]
+                # get cost of all actions to reach this state
+                cost = cost + problem.getCostOfActions(actions)
+                # get heuristic cost
+                heuristicCost = heuristic(nextState, problem)
+                # push the successor into the queue with the cost and heuristic
+                priorityQueue.push((nextState, actions + [action]), cost + heuristicCost)
+
+    return actions
 
 
 # Abbreviations
