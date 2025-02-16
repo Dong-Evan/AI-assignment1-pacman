@@ -121,8 +121,9 @@ def depthFirstSearch(problem: SearchProblem):
     # initialize the stack
     stack = util.Stack()
     # initialize the closed set
-    closed = set()  # set is a data structure that stores unique elements
+    # closed = set()  # set is a data structure that stores unique elements by hashing
                     # same as list but no duplicates (?)
+    closed = set() 
     # push the start state to the stack
     stack.push((problem.getStartState(), []))
 
@@ -130,7 +131,7 @@ def depthFirstSearch(problem: SearchProblem):
     while not stack.isEmpty():
         # pop the top node from the stack and store it
         # node is a tuple of (state, actions) - recall above, we push (<start state> or <x,y>, []) to the stack
-        # state is the current state and actions is the list of actions to reach this state (i.e., the path)
+        # state is the current position (x,y) and actions is the list of actions to reach this state (i.e., the path)
         currentState, actions = stack.pop() 
         # print("Node:", node)
         # print("Actions:", actions)
@@ -189,7 +190,7 @@ def breadthFirstSearch(problem: SearchProblem):
 
     # push the start state (root node) to the queue
     queue.push((problem.getStartState(), []))
-
+    
     while not queue.isEmpty():
         # pop the front node from the queue and store it
         currentState, actions = queue.pop()
@@ -200,8 +201,10 @@ def breadthFirstSearch(problem: SearchProblem):
         
         # check if current node has been visited
         if not currentState in closed:
+
             # add the current node
             closed.add(currentState)
+
             # get the successors of the current node
             successors = problem.getSuccessors(currentState)
 
@@ -277,37 +280,47 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     # initialize the closed set
     closed = set()
 
+    # iniitialize the dict used to track the best cost found for each state (position, *visited), *extra tuple for corners problem
+    costMap = {}
+
     # push the start state (root node) to the queue
-    priorityQueue.push((problem.getStartState(), []), 0)
+    startState = problem.getStartState()
+    priorityQueue.push((startState, []), 0)
+    costMap[startState] = 0
 
     # loop through the queue until empty
     while not priorityQueue.isEmpty():
         
         # pop the front node from the queue and store it
         currentState, actions = priorityQueue.pop()
+        # get cost of current path (actions)
+        currentCost = problem.getCostOfActions(actions)
+        # print(len(currentState))
 
         # check if the current node's state is the goal state
         if problem.isGoalState(currentState):
             return actions
         
-        # check if the current node has been visited
-        if not currentState in closed:
-            # add the current node
-            closed.add(currentState)
-            # get the successors of the current node
-            successors = problem.getSuccessors(currentState)
+        # get the successors of the current node
+        successors = problem.getSuccessors(currentState)
 
-            # push the successors into the queue
-            for successor in successors:
-                nextState = successor[0]
-                action = successor[1]
-                cost = successor[2]
-                # get cost of all actions to reach this state
-                cost = cost + problem.getCostOfActions(actions)
+        # push the successors into the queue
+        for successor in successors:
+            nextState = successor[0]
+            action = successor[1]
+            nextCost = successor[2]
+            # get the new cost which is the cost of the current path + the cost of the next state
+            newCost = currentCost + nextCost
+
+            # check if this state is the best found path to nextState (i.e., new or better than previously found state)
+            # skip this state if not
+            if nextState not in costMap or newCost < costMap[nextState]:
+                # update the dict
+                costMap[nextState] = newCost
                 # get heuristic cost
                 heuristicCost = heuristic(nextState, problem)
                 # push the successor into the queue with the cost and heuristic
-                priorityQueue.push((nextState, actions + [action]), cost + heuristicCost)
+                priorityQueue.push((nextState, actions + [action]), newCost + heuristicCost)
 
     return actions
 
